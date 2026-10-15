@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Uma pergunta pra você 💌</title>
+<meta name="theme-color" content="#ffd6e4">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💖</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg1: #ffd6e4;
+    --bg2: #ffeef4;
+    --pink: #ff4d8d;
+    --pink-dark: #e0336f;
+    --text: #6b2140;
+    --card: rgba(255, 255, 255, 0.75);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    font-family: 'Quicksand', system-ui, sans-serif;
+    color: var(--text);
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    touch-action: manipulation;
+    user-select: none; -webkit-user-select: none;
+  }
+  #hearts-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .float-heart {
+    position: absolute; bottom: -40px; opacity: .55;
+    animation: rise linear forwards;
+  }
+  @keyframes rise {
+    to { transform: translateY(-115vh) rotate(25deg); opacity: 0; }
+  }
+
+  main {
+    position: relative; z-index: 1;
+    min-height: 100%; display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .card {
+    width: 100%; max-width: 420px;
+    background: var(--card);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border-radius: 28px;
+    padding: 32px 22px 36px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(255, 77, 141, .25);
+  }
+  .emoji { font-size: 84px; line-height: 1; animation: bob 2s ease-in-out infinite; display: inline-block; }
+  @keyframes bob { 50% { transform: translateY(-8px) scale(1.05); } }
+
+  h1 {
+    font-family: 'Pacifico', cursive; font-weight: 400;
+    font-size: clamp(28px, 8vw, 38px);
+    margin: 18px 0 8px; color: var(--pink-dark);
+  }
+  p.sub { margin: 0 0 26px; font-size: 17px; opacity: .85; min-height: 1.4em; }
+
+  .buttons {
+    display: flex; gap: 16px; justify-content: center; align-items: center;
+    flex-wrap: wrap; min-height: 70px;
+  }
+  button {
+    font-family: inherit; font-weight: 700; font-size: 20px;
+    border: 0; border-radius: 999px; cursor: pointer;
+    padding: 14px 34px;
+    transition: transform .25s ease, font-size .25s ease, padding .25s ease;
+  }
+  #yes {
+    background: var(--pink); color: #fff;
+    box-shadow: 0 6px 0 var(--pink-dark), 0 10px 24px rgba(255, 77, 141, .4);
+  }
+  #yes:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--pink-dark); }
+  #no {
+    background: #fff; color: var(--text);
+    box-shadow: 0 4px 0 #f3bfd1;
+  }
+  #no.fugindo {
+    position: fixed; z-index: 5;
+    transition: left .3s ease, top .3s ease, transform .3s ease;
+  }
+
+  /* tela final */
+  #final { display: none; }
+  #final.show { display: block; animation: pop .6s cubic-bezier(.2, 1.6, .4, 1); }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } }
+  .big-kiss { font-size: 110px; display: inline-block; animation: beat 1s ease-in-out infinite; }
+  @keyframes beat { 0%,100% { transform: scale(1); } 30% { transform: scale(1.2); } 60% { transform: scale(.95); } }
+
+  .burst {
+    position: fixed; pointer-events: none; z-index: 10;
+    font-size: 26px;
+    animation: burst 1.6s ease-out forwards;
+  }
+  @keyframes burst {
+    to { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.6); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="hearts-bg"></div>
+
+<main>
+  <section class="card" id="pergunta">
+    <div class="emoji" id="emoji">🥺</div>
+    <h1>Karen, você me dá um beijinho?</h1>
+    <p class="sub" id="sub">pensa com carinho... 💭</p>
+    <div class="buttons">
+      <button id="yes">Sim 💖</button>
+      <button id="no">Não</button>
+    </div>
+  </section>
+
+  <section class="card" id="final">
+    <div class="big-kiss">😘</div>
+    <h1>Eebaaa!! 💋</h1>
+    <p class="sub">Eu sabia que você ia dizer sim 🥰<br>Tô te devendo esse beijinho, viu?</p>
+  </section>
+</main>
+
+<script>
+  const yes = document.getElementById('yes');
+  const no = document.getElementById('no');
+  const sub = document.getElementById('sub');
+  const emoji = document.getElementById('emoji');
+
+  const frases = [
+    ['tem certeza? 🤨', '😟'],
+    ['pensa de novo... 🥺', '🥺'],
+    ['nem um pouquinho? 🤏', '😢'],
+    ['olha que eu choro 😭', '😭'],
+    ['o botão não quer que você clique 😅', '🙈'],
+    ['tá bom, o "sim" tá logo ali 👉', '👉'],
+    ['desiste, Karen 😌💕', '😌'],
+  ];
+  let tentativas = 0;
+  let yesScale = 1;
+
+  function fugir(e) {
+    if (e) e.preventDefault();
+    tentativas++;
+
+    // muda o texto e o emoji
+    const [frase, em] = frases[Math.min(tentativas - 1, frases.length - 1)];
+    sub.textContent = frase;
+    emoji.textContent = em;
+
+    // o "sim" vai crescendo
+    yesScale = Math.min(yesScale + 0.15, 2.2);
+    yes.style.transform = `scale(${yesScale})`;
+
+    // o "não" vai encolhendo e fugindo
+    const rect = no.getBoundingClientRect();
+    if (!no.classList.contains('fugindo')) {
+      no.style.left = rect.left + 'px';
+      no.style.top = rect.top + 'px';
+      no.classList.add('fugindo');
+      no.getBoundingClientRect(); // força o layout antes de mover
+    }
+    const margem = 16;
+    const maxX = window.innerWidth - rect.width - margem;
+    const maxY = window.innerHeight - rect.height - margem;
+    const yesRect = yes.getBoundingClientRect();
+    let x, y, ok = false, tries = 0;
+    while (!ok && tries < 30) {
+      x = margem + Math.random() * (maxX - margem);
+      y = margem + Math.random() * (maxY - margem);
+      // evita cair em cima do botão "sim"
+      ok = x + rect.width < yesRect.left - 10 || x > yesRect.right + 10 ||
+           y + rect.height < yesRect.top - 10 || y > yesRect.bottom + 10;
+      tries++;
+    }
+    no.style.left = x + 'px';
+    no.style.top = y + 'px';
+    const s = Math.max(1 - tentativas * 0.08, 0.5);
+    no.style.transform = `scale(${s}) rotate(${(Math.random() - .5) * 30}deg)`;
+
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  // celular: foge no toque; computador: foge quando o mouse chega perto
+  no.addEventListener('touchstart', fugir, { passive: false });
+  no.addEventListener('mouseenter', fugir);
+  no.addEventListener('click', fugir);
+
+  yes.addEventListener('click', () => {
+    document.getElementById('pergunta').style.display = 'none';
+    no.style.display = 'none';
+    document.getElementById('final').classList.add('show');
+    explodir(window.innerWidth / 2, window.innerHeight / 2, 40);
+    setTimeout(() => explodir(window.innerWidth / 2, window.innerHeight / 3, 30), 500);
+    setInterval(coracaoFlutuante, 120);
+    if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+  });
+
+  function explodir(cx, cy, n) {
+    const itens = ['💖', '💕', '💋', '💗', '✨', '🌸', '😘'];
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement('div');
+      el.className = 'burst';
+      el.textContent = itens[Math.floor(Math.random() * itens.length)];
+      el.style.left = cx + 'px';
+      el.style.top = cy + 'px';
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 120 + Math.random() * 220;
+      el.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      el.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      el.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1700);
+    }
+  }
+
+  const bg = document.getElementById('hearts-bg');
+  function coracaoFlutuante() {
+    const h = document.createElement('div');
+    h.className = 'float-heart';
+    h.textContent = ['💗', '💕', '💖', '🤍'][Math.floor(Math.random() * 4)];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = 14 + Math.random() * 22 + 'px';
+    h.style.animationDuration = 5 + Math.random() * 5 + 's';
+    bg.appendChild(h);
+    setTimeout(() => h.remove(), 10000);
+  }
+  setInterval(coracaoFlutuante, 600);
+</script>
+</body>
+</html>
